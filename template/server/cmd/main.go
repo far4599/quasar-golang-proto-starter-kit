@@ -3,6 +3,7 @@ package main
 import (
   "flag"
   "fmt"
+  "github.com/gorilla/handlers"
   "github.com/gorilla/mux"
   "github.com/improbable-eng/grpc-web/go/grpcweb"
   "golang.org/x/sync/errgroup"
@@ -13,7 +14,7 @@ import (
 )
 
 func run() error {
-  conf := GetConfig()
+  conf := getConfig()
 
   grpcServer := grpc.NewServer()
   proto.RegisterHelloServiceServer(grpcServer, hellosvc.NewServiceServer())
@@ -22,14 +23,12 @@ func run() error {
   }))
 
   router := mux.NewRouter()
-  router.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-    w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization, X-CSRF-Token, array, arrayindexoffset_, convertedprimitivefields_, messageid_, pivot_, wrappers_, x-grpc-web")
-    w.Header().Set("Access-Control-Expose-Headers", "Authorization")
 
-    w.WriteHeader(http.StatusOK)
-  })
+  corsOrigins := handlers.AllowedOrigins([]string{conf.originsAllowed})
+  corsHeaders := handlers.AllowedHeaders([]string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "Authorization", "X-CSRF-Token", "array", "arrayindexoffset_", "convertedprimitivefields_", "messageid_", "pivot_", "wrappers_", "x-grpc-web"})
+  corsMethods := handlers.AllowedMethods([]string{"POST", "GET", "OPTIONS", "PUT", "DELETE"})
+  corsHeadersExpose := handlers.ExposedHeaders([]string{"Authorization"})
+  corsMaxAge := handlers.MaxAge(24 * 60 * 60)
 
   handlerFunc := func(w http.ResponseWriter, r *http.Request) {
     if wrappedGrpc.IsGrpcWebRequest(r) {
@@ -38,7 +37,7 @@ func run() error {
     }
 
     // Fall back to other servers.
-    router.ServeHTTP(w, r)
+    handlers.CORS(corsOrigins, corsHeaders, corsMethods, corsHeadersExpose, corsMaxAge)(router).ServeHTTP(w, r)
   }
 
   httpSrv := &http.Server{

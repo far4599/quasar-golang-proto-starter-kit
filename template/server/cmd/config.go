@@ -3,14 +3,16 @@ package main
 import "os"
 
 type config struct {
+  originsAllowed string
   httpHost      string
   httpPort      string
   secretKey     string
   webhookSecret string
 }
 
-func GetConfig() config {
+func getConfig() config {
   conf := config{
+    originsAllowed: os.Getenv("ORIGINS_ALLOWED"),
     httpHost:      os.Getenv("SERVER_HTTP_HOST"),
     httpPort:      os.Getenv("SERVER_HTTP_PORT"),
   }
@@ -20,6 +22,10 @@ func GetConfig() config {
   }
   if conf.httpPort == "" {
     conf.httpPort = "8843"
+  }
+
+  if conf.originsAllowed == "" {
+    panic("$ORIGINS_ALLOWED is empty")
   }
 
   return conf
