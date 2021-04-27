@@ -1,0 +1,21 @@
+{
+  admin off
+  auto_https off
+}
+
+:8080 {
+  @notGet {
+    not method GET
+  }
+
+  handle @notGet {
+    reverse_proxy {$SERVER_HTTP_HOST:127.0.0.1}:{$SERVER_HTTP_PORT:8843}
+  }
+
+  handle {
+    encode gzip
+    file_server
+    root * /app/public
+    try_files {path} /index.html
+  }
+}

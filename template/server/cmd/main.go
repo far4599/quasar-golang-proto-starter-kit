@@ -6,11 +6,14 @@ import (
   "github.com/gorilla/handlers"
   "github.com/gorilla/mux"
   "github.com/improbable-eng/grpc-web/go/grpcweb"
-  "golang.org/x/sync/errgroup"
+  oklog "github.com/oklog/run"
   "google.golang.org/grpc"
   "net/http"
+  "os"
+  "os/signal"
   proto "server/proto/hellosvc"
   "server/src/hellosvc"
+  "syscall"
 )
 
 func run() error {
@@ -45,25 +48,44 @@ func run() error {
     Handler: http.HandlerFunc(handlerFunc),
   }
 
-  var group errgroup.Group
-
-  group.Go(func() error {
-    // http server
-    fmt.Println("http server listen on ", httpSrv.Addr)
-    return httpSrv.ListenAndServe()
-  })
-
-  //lis, err := net.Listen("tcp", ":8843")
-  //if err != nil {
-  // return err
+  // if any element of group will exit with error,
+  // then the other elements will be interrupted
+  var g oklog.Group
+  {
+    g.Add(func() error {
+      // http server
+      fmt.Println("http server listen on ", httpSrv.Addr)
+      return httpSrv.ListenAndServe()
+    }, func(err error) {
+      fmt.Println("http server stopping due to error: ", err)
+      _ = httpSrv.Close()
+    })
+  }
+  //{
+  //  lis, err := net.Listen("tcp", ":8844")
+  //  if err != nil {
+  //    return err
+  //  }
+  //  g.Add(func() error {
+  //    // GRPC server
+  //    return grpcServer.Serve(lis)
+  //  }, func(err error) {
+  //    lis.Close()
+  //  })
   //}
-  //
-  //group.Go(func() error {
-  // // GRPC server
-  // return grpcServer.Serve(lis)
-  //})
+  {
+    c := make(chan os.Signal)
+    g.Add(func() error {
+      signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+      err := fmt.Errorf("%s", <-c)
+      fmt.Println("received signal: ", err)
+      return err
+    }, func(err error) {
+      close(c)
+    })
+  }
 
-  return group.Wait()
+  return g.Run()
 }
 
 func main() {

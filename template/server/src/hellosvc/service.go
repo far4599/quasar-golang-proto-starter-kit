@@ -17,13 +17,17 @@ func NewServiceServer() hellosvc.HelloServiceServer {
 }
 
 func (s *service) GetGreeting(ctx context.Context, req *hellosvc.GetGreetingRequest) (*hellosvc.GetGreetingReply, error) {
-   return &hellosvc.GetGreetingReply{Message: fmt.Sprintf("Hello %s!", req.Name)}, nil
+  msg := fmt.Sprintf("Hello %s!", req.Name)
+  fmt.Println(msg)
+  return &hellosvc.GetGreetingReply{Message: msg}, nil
 }
 
 func (s *service) EventsStream(_ *empty.Empty, stream hellosvc.HelloService_EventsStreamServer) error {
   for i := 0; i < 10; i++ {
+    msg := fmt.Sprintf("Hello %d!", i)
+    fmt.Println(msg)
     resp := &hellosvc.EventsStreamReply{
-      Message: fmt.Sprintf("Hello %d!", i),
+      Message: msg,
     }
     if err := stream.Send(resp); err != nil {
       log.Println("failed to send message to stream: ", resp)
