@@ -6,28 +6,28 @@
   "author": "{{ author }}",
   "private": true,
   "scripts": {
-    {{#preset.lint}}"lint": "eslint --ext .js,{{#preset.typescript}}.ts,{{/preset.typescript}}.vue ./",{{/preset.lint}}
+    "start": "concurrently \"yarn run:dev\" \"yarn run:server\"",
+    "run:dev": "quasar dev",
+    "run:server": "cd server && go run ./cmd/",
+    "build": "quasar build",
+    {{#preset.lint}}"lint": "eslint --ext .js,.vue ./",{{/preset.lint}}
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
-    {{#if_eq typescriptConfig "composition"}}"@vue/composition-api": "^1.0.0-rc.3",{{/if_eq}}
-    {{#if_eq typescriptConfig "class"}}
-    "vue-class-component": "^7.2.2",
-    "vue-property-decorator": "^8.3.0",
-    {{/if_eq}}
+    "@improbable-eng/grpc-web": "^0.14.0",
     {{#preset.axios}}"axios": "^0.21.1",{{/preset.axios}}
     {{#preset.i18n}}"vue-i18n": "^8.0.0",{{/preset.i18n}}
     "@quasar/extras": "^1.0.0",
     "core-js": "^3.6.5",
-    "quasar": "^1.0.0"
-  },
+    "quasar": "^1.0.0",
+    "google-protobuf": "^3.15.8",
+    "grpc-web": "^1.2.1"
+},
   "devDependencies": {
     {{#preset.lint}}
     "babel-eslint": "^10.0.1",
     "eslint": "^7.21.0",
-    {{#unless preset.typescript}}
     "eslint-webpack-plugin": "^2.4.0",
-    {{/unless}}
     "eslint-plugin-vue": "^7.7.0",
     {{#if_eq lintConfig "standard"}}
     "eslint-config-standard": "^16.0.2",
@@ -43,15 +43,10 @@
     "eslint-config-prettier": "^8.1.0",
     {{/if_eq}}
     {{/preset.lint}}
-    {{#preset.typescript}}
-    {{#preset.lint}}
-    "@typescript-eslint/eslint-plugin": "^4.16.1",
-    "@typescript-eslint/parser": "^4.16.1",
-    {{/preset.lint}}
-    "@types/node": "^10.17.15",
-    {{/preset.typescript}}
-    "@quasar/app": "^2.0.0"
-  },
+    "@quasar/app": "^2.0.0",
+    "ts-protoc-gen": "^0.14.0",
+    "concurrently": "^6.0.2"
+},
   "browserslist": [
     {{#preset.ie}}
     "ie >= 11",

@@ -19,7 +19,7 @@ $ cd my-project
 $ yarn
 
 # start developing your app
-$ quasar dev
+$ yarn start
 ```
 
 ## License

@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+option go_package = "{{ name }}/hellosvc";
+
+package hellosvc;
+
+service HelloService {
+  rpc GetGreeting (GetGreetingRequest) returns (GetGreetingReply) {}
+  rpc EventsStream (google.protobuf.Empty) returns (stream EventsStreamReply) {}
+}
+
+message GetGreetingRequest {
+  string name = 1;
+}
+
+message GetGreetingReply {
+  string message = 1;
+  string error = 2;
+}
+
+message EventsStreamReply {
+  string message = 1;
+  string error = 2;
+}

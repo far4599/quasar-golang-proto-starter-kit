@@ -46,7 +46,7 @@
   </q-layout>
 </template>
 
-<script{{#if preset.typescript}} lang="ts"{{/if}}>
+<script>
 import EssentialLink from 'components/EssentialLink.vue'
 
 const linksData = [
@@ -94,39 +94,6 @@ const linksData = [
   }
 ];
 
-{{#if preset.typescript}}
-{{#if_eq typescriptConfig "composition"}}import { defineComponent, ref } from '@vue/composition-api';
-
-export default defineComponent({
-  name: 'MainLayout',
-  components: { EssentialLink },
-  setup() {
-    const leftDrawerOpen = ref(false);
-    const essentialLinks = ref(linksData);
-
-    return {leftDrawerOpen, essentialLinks}
-  }
-});{{/if_eq}}{{#if_eq typescriptConfig "class"}}import { Vue, Component } from 'vue-property-decorator';
-
-@Component({
-  components: { EssentialLink }
-})
-export default class MainLayout extends Vue {
-  leftDrawerOpen = false;
-  essentialLinks = linksData;
-}{{/if_eq}}{{#if_eq typescriptConfig "options"}}import Vue from 'vue';
-
-export default Vue.extend({
-  name: 'MainLayout',
-  components: { EssentialLink },
-  data() {
-    return {
-      leftDrawerOpen: false,
-      essentialLinks: linksData
-    }
-  }
-});{{/if_eq}}
-{{else}}
 export default {
   name: 'MainLayout',
   components: { EssentialLink },
@@ -137,5 +104,4 @@ export default {
     }
   }
 }
-{{/if}}
 </script>

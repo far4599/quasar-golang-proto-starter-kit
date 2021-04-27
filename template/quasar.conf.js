@@ -11,24 +11,12 @@
 /* eslint func-names: 0 */
 /* eslint global-require: 0 */
 {{/if_eq}}
-{{#preset.typescript}}
-{{else}}
-const ESLintPlugin = require('eslint-webpack-plugin')
-{{/preset.typescript}}
 {{/preset.lint}}
-{{#preset.typescript}}
-/* eslint-disable @typescript-eslint/no-var-requires */
-const { configure } = require('quasar/wrappers');
-{{/preset.typescript}}
 
-module.exports = {{#preset.typescript}}configure({{/preset.typescript}}function (/* ctx */) {
+module.exports = function (/* ctx */) {
   return {
     // https://v1.quasar.dev/quasar-cli/supporting-ts
-    supportTS: {{#if preset.typescript}}{{#if preset.lint}}{
-      tsCheckerConfig: {
-        eslint: true
-      }
-    }{{else}}true{{/if}}{{else}}false{{/if}},
+    supportTS: false,
 
     // https://v1.quasar.dev/quasar-cli/prefetch-feature
     // preFetch: true,
@@ -37,7 +25,6 @@ module.exports = {{#preset.typescript}}configure({{/preset.typescript}}function 
     // --> boot files are part of "main.js"
     // https://v1.quasar.dev/quasar-cli/boot-files
     boot: [
-      {{#if_eq typescriptConfig "composition"}}'composition-api',{{/if_eq}}
       {{#preset.i18n}}
       'i18n',
       {{/preset.i18n}}
@@ -87,14 +74,6 @@ module.exports = {{#preset.typescript}}configure({{/preset.typescript}}function 
 
       // https://v1.quasar.dev/quasar-cli/handling-webpack
       // "chain" is a webpack-chain object https://github.com/neutrinojs/webpack-chain
-      {{#preset.typescript}}chainWebpack (/* chain */) {
-        //
-      },{{else}}{{#preset.lint}}chainWebpack (chain) {
-        chain.plugin('eslint-webpack-plugin')
-          .use(ESLintPlugin, [{ extensions: [ 'js', 'vue' ] }])
-      },{{else}}chainWebpack (/* chain */) {
-        //
-      },{{/preset.lint}}{{/preset.typescript}}
     },
 
     // Full list of options: https://v1.quasar.dev/quasar-cli/quasar-conf-js#Property%3A-devServer
@@ -123,7 +102,20 @@ module.exports = {{#preset.typescript}}configure({{/preset.typescript}}function 
       // directives: [],
 
       // Quasar plugins
-      plugins: []
+      plugins: [
+        'Notify'
+      ],
+
+      config: {
+        notify: {
+          position: 'top',
+            timeout: 5000,
+            actions: [{icon: 'close', color: 'white'}],
+            progress: true,
+            color: 'green',
+            textColor: 'white',
+        }
+      }
     },
 
     // animations: 'all', // --- includes all animations
@@ -219,4 +211,4 @@ module.exports = {{#preset.typescript}}configure({{/preset.typescript}}function 
       }
     }
   }
-}{{#preset.typescript}});{{/preset.typescript}}
+}
