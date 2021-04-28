@@ -1,6 +1,7 @@
 package main
 
 import (
+  "context"
   "flag"
   "fmt"
   "github.com/gorilla/handlers"
@@ -8,12 +9,15 @@ import (
   "github.com/improbable-eng/grpc-web/go/grpcweb"
   oklog "github.com/oklog/run"
   "google.golang.org/grpc"
+  "log"
   "net/http"
   "os"
   "os/signal"
   proto "server/proto/hellosvc"
   "server/src/hellosvc"
+  "strings"
   "syscall"
+  "time"
 )
 
 func run() error {
@@ -22,10 +26,18 @@ func run() error {
   grpcServer := grpc.NewServer()
   proto.RegisterHelloServiceServer(grpcServer, hellosvc.NewServiceServer())
   wrappedGrpc := grpcweb.WrapServer(grpcServer, grpcweb.WithOriginFunc(func(origin string) bool {
-    return true
+    return origin == conf.originsAllowed
   }))
 
-  router := mux.NewRouter()
+  router := mux.NewRouter().PathPrefix("/api").Subrouter()
+
+  // here you can add more routes and handlers
+  {
+    //router.Methods("GET").Path("/healthcheck").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    //  w.WriteHeader(http.StatusOK)
+    //  w.Write([]byte("ok"))
+    //})
+  }
 
   corsOrigins := handlers.AllowedOrigins([]string{conf.originsAllowed})
   corsHeaders := handlers.AllowedHeaders([]string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "Authorization", "X-CSRF-Token", "array", "arrayindexoffset_", "convertedprimitivefields_", "messageid_", "pivot_", "wrappers_", "x-grpc-web"})
@@ -34,12 +46,21 @@ func run() error {
   corsMaxAge := handlers.MaxAge(24 * 60 * 60)
 
   handlerFunc := func(w http.ResponseWriter, r *http.Request) {
+    if !strings.HasPrefix(r.URL.Path, "/api") {
+      // we handle requests only if there is "/api" prefix, otherwise return 404
+      http.NotFound(w, r)
+      return
+    }
+
     if wrappedGrpc.IsGrpcWebRequest(r) {
+      // if request has grpc fingerprint, then try to handle it as web grpc request
+      // we need to trim "/api" prefix from url to handle grpc correctly
+      r.URL.Path = strings.TrimPrefix(r.URL.Path, "/api")
       wrappedGrpc.ServeHTTP(w, r)
       return
     }
 
-    // Fall back to other servers.
+    // fall back to other servers
     handlers.CORS(corsOrigins, corsHeaders, corsMethods, corsHeadersExpose, corsMaxAge)(router).ServeHTTP(w, r)
   }
 
@@ -57,8 +78,15 @@ func run() error {
       fmt.Println("http server listen on ", httpSrv.Addr)
       return httpSrv.ListenAndServe()
     }, func(err error) {
-      fmt.Println("http server stopping due to error: ", err)
-      _ = httpSrv.Close()
+      fmt.Println("http server stopping gracefully due to error: ", err)
+      ctxShutDown, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+      defer func() {
+        cancel()
+      }()
+
+      if err = httpSrv.Shutdown(ctxShutDown); err != nil && err != http.ErrServerClosed {
+        log.Println("failed to shutdown server gracefully: ", err)
+      }
     })
   }
   //{

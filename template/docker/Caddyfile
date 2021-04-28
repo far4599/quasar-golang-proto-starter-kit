@@ -4,11 +4,7 @@
 }
 
 :8080 {
-  @notGet {
-    not method GET
-  }
-
-  handle @notGet {
+  handle /api* {
     reverse_proxy {$SERVER_HTTP_HOST:127.0.0.1}:{$SERVER_HTTP_PORT:8843}
   }
 

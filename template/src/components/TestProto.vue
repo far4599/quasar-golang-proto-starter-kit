@@ -68,7 +68,7 @@ export default {
     }
   },
   mounted() {
-    this.protoClient = new HelloServiceClient(process.env.PROD ? location.origin : 'http://localhost:8843');
+    this.protoClient = new HelloServiceClient((process.env.PROD ? location.origin : 'http://localhost:8843') + '/api');
   }
 }
 </script>

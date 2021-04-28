@@ -2,12 +2,18 @@
 FROM golang:1.16-alpine as backendBuilder
 WORKDIR /app
 ADD ./server .
-RUN go mod tidy && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o server-linux ./cmd
+RUN go mod tidy && CGO_ENABLED=0 GOOS=linux go build -a -o server-linux ./cmd
 
 
 FROM node:14-alpine as frontendBuilder
 WORKDIR /app
-ADD . .
+ADD ./.* ./
+ADD ./public ./public
+ADD ./src ./src
+ADD ./babel.config.js ./
+ADD ./quasar.conf.js ./
+ADD ./package.json ./
+ADD ./*lock* ./
 RUN yarn && yarn build
 
 
