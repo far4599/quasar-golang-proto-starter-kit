@@ -13,7 +13,22 @@ yarn
 
 ### Start the app in development mode (hot-code reloading, error reporting, etc.)
 ```bash
-quasar dev
+yarn start
+```
+
+### Regenerate proto libraries after changing proto files
+```bash
+make protogen
+```
+
+### Build all-in-one docker image for production
+```bash
+make docker-build
+```
+
+### Build and run docker image
+```bash
+make docker-build-and-run
 ```
 
 {{#preset.lint}}
@@ -23,7 +38,7 @@ quasar dev
 ```
 {{/preset.lint}}
 
-### Build the app for production
+### Build frontend app for production
 ```bash
 quasar build
 ```

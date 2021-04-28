@@ -20,7 +20,7 @@ module.exports = {
     description: {
       type: 'string',
       message: 'Project description',
-      default: 'A Quasar Framework app',
+      default: 'A Quasar Framework app with Golang backend and protobuf',
       transformer: escape
     },
 
