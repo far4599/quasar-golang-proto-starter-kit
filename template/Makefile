@@ -26,4 +26,4 @@ docker-image-build:
 		docker build -t ${DOCKER_IMAGE_TAG} .
 
 docker-image-run:
-		docker run -e ORIGINS_ALLOWED=http://localhost:8080 -p 8080:8080 ${DOCKER_IMAGE_TAG}
+		docker run --env-file .env -p 8080:8080 ${DOCKER_IMAGE_TAG}
