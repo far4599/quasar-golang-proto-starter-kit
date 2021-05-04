@@ -6,8 +6,6 @@ type config struct {
   originsAllowed string
   httpHost      string
   httpPort      string
-  secretKey     string
-  webhookSecret string
 }
 
 func getConfig() config {
