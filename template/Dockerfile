@@ -19,18 +19,17 @@ RUN yarn && yarn build
 
 FROM caddy:2.3.0-alpine
 WORKDIR /app
-RUN apk add --update supervisor ca-certificates && rm  -rf /tmp/* /var/cache/apk/*
+RUN apk add --update bash supervisor ca-certificates && rm  -rf /tmp/* /var/cache/apk/*
 
-COPY --from=backendBuilder /app/server-linux ./server-linux
-COPY --from=frontendBuilder /app/dist/spa ./public
-
-COPY ./docker/supervisord.conf /etc/
-COPY ./docker/Caddyfile /etc/caddy/
+EXPOSE 8080
 
 ENV ORIGINS_ALLOWED=""
 ENV SERVER_HTTP_HOST="127.0.0.1"
 ENV SERVER_HTTP_PORT="8843"
 
-EXPOSE 8080
+COPY ./docker/supervisord.conf /etc/
+COPY ./docker/Caddyfile /etc/caddy/
+COPY --from=backendBuilder /app/server-linux ./server-linux
+COPY --from=frontendBuilder /app/dist/spa ./public
 
 ENTRYPOINT ["supervisord", "--nodaemon", "--configuration", "/etc/supervisord.conf"]
