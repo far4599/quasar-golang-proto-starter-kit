@@ -1,14 +1,24 @@
 package main
 
-import "os"
+import (
+  "fmt"
+  "os"
+)
 
 type config struct {
   originsAllowed string
-  httpHost      string
-  httpPort      string
+  httpHost       string
+  httpPort       string
 }
 
 func getConfig() config {
+  // add your own env vars to the slice to check if their value is not empty
+  for _, v := range []string{"ORIGINS_ALLOWED"} {
+    if os.Getenv(v) == "" {
+      panic(fmt.Sprintf("failed to get config options: $%s is empty", v))
+    }
+  }
+
   conf := config{
     originsAllowed: os.Getenv("ORIGINS_ALLOWED"),
     httpHost:      os.Getenv("SERVER_HTTP_HOST"),
@@ -20,10 +30,6 @@ func getConfig() config {
   }
   if conf.httpPort == "" {
     conf.httpPort = "8843"
-  }
-
-  if conf.originsAllowed == "" {
-    panic("$ORIGINS_ALLOWED is empty")
   }
 
   return conf
